@@ -35,7 +35,7 @@ class Page extends Component {
       email: username,
       password: password
     };
-    return axios.post(Config.USER_URL_DEV, body)
+    return axios.post(Config.BASE_URL_DEV+'/auth/sign_in', body)
       .then(res => {
         this.parseLogInResponse(res.data);
       })
