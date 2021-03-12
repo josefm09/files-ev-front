@@ -23,54 +23,97 @@ class Home extends Component {
     super(props);
 
     this.state = {
-      selectedFiles: [],
+      selectedFiles: undefined,
       currentFile: undefined,
       progress: 0,
-      message: "",
+      progressInfos: [],
+      message: [],
       isError: false,
       fileInfos: [],
     };
+
+    this.selectFiles = this.selectFiles.bind(this);
+    this.uploadFiles = this.uploadFiles.bind(this);
   }
 
-  selectFile(event) {
+  selectFiles(event) {
     this.setState({
-      selectedFiles: this.state.selectedFiles.concat(event.target.files),
+      progressInfos: [],
+      selectedFiles: event.target.files,
     });
+    alert(this.state.selectedFiles);
   }
 
-  upload() {
-    alert(this.state.selectedFiles);
-    for (let i = 0; i < this.state.selectedFiles.length; i++) {
-      let currentFile = this.state.selectedFiles[i];
+  uploadFiles() {
+    const selectedFiles = this.state.selectedFiles;
 
-      this.setState({
-        progress: 0,
-        currentFile: currentFile,
-      });
+    let _progressInfos = [];
 
-      UploadService.upload(currentFile, (event) => {
+    for (let i = 0; i < selectedFiles.length; i++) {
+      _progressInfos.push({ percentage: 0, fileName: selectedFiles[i].name });
+    }
+
+    this.setState(
+      {
+        progressInfos: _progressInfos,
+        message: [],
+      },
+      () => {
+        for (let i = 0; i < selectedFiles.length; i++) {
+          this.upload(i, selectedFiles[i]);
+        }
+      }
+    );
+  }
+
+  upload(idx, file) {
+    let _progressInfos = [...this.state.progressInfos];
+
+    const reader = new FileReader();
+    reader.onload = async (file) => { 
+      const text = (file.target.result);
+      console.log(text);
+      console.log(this.props.userId);
+      UploadService.upload(text, this.props.userId, (event) => {
+        _progressInfos[idx].percentage = Math.round((100 * event.loaded) / event.total);
         this.setState({
-          progress: Math.round((100 * event.loaded) / event.total),
+          _progressInfos,
         });
       })
         .then((response) => {
+          this.setState((prev) => {
+            let nextMessage = [...prev.message, "Archivo cargado con exito: " + file.name];
+            return {
+              message: nextMessage
+            };
+          });
+  
+          return UploadService.getFiles(this.props.userId);
+        })
+        .then((files) => {
           this.setState({
-            message: response.data.message,
-            isError: false
+            fileInfos: files.data,
           });
         })
         .catch(() => {
-          this.setState({
-            progress: 0,
-            message: "No se pudieron cargar los archivos!",
-            currentFile: undefined,
-            isError: true
+          _progressInfos[idx].percentage = 0;
+          this.setState((prev) => {
+            let nextMessage = [...prev.message, "No se pudo cargar el archivo: " + file.name];
+            return {
+              progressInfos: _progressInfos,
+              message: nextMessage
+            };
           });
         });
-    }
+    };
+    reader.readAsText(file);
+  }
 
-    this.setState({
-      selectedFiles: undefined,
+  componentDidMount() {
+    UploadService.getFiles(this.props.userId).then((response) => {
+      this.setState({
+        fileInfos: response.data,
+      });
     });
   }
 
@@ -91,74 +134,69 @@ class Home extends Component {
 
   render = () => {
 
-    const {
-      selectedFiles,
-      currentFile,
-      progress,
-      message,
-      fileInfos,
-      isError
-    } = this.state;
-    
+    const { selectedFiles, progressInfos, message, fileInfos } = this.state;
+
     return (
-      <div className="mg20">
-        {currentFile && (
-          <Box className="mb25" display="flex" alignItems="center">
-            <Box width="100%" mr={1}>
-              <BorderLinearProgress variant="determinate" value={progress} />
-            </Box>
-            <Box minWidth={35}>
-              <Typography variant="body2" color="textSecondary">{`${progress}%`}</Typography>
-            </Box>
-          </Box>)
-        }
+      <div>
+        {progressInfos &&
+          progressInfos.map((progressInfo, index) => (
+            <div className="mb-2" key={index}>
+              <span>{progressInfo.fileName}</span>
+              <div className="progress">
+                <div
+                  className="progress-bar progress-bar-info"
+                  role="progressbar"
+                  aria-valuenow={progressInfo.percentage}
+                  aria-valuemin="0"
+                  aria-valuemax="100"
+                  style={{ width: progressInfo.percentage + "%" }}
+                >
+                  {progressInfo.percentage}%
+                </div>
+              </div>
+            </div>
+          ))}
 
-        <label htmlFor="btn-upload">
-          <input
-            id="btn-upload"
-            name="btn-upload"
-            style={{ display: 'none' }}
-            type="file"
-            multiple
-            onChange={e => this.selectFile(e)} />
-          <Button
-            className="btn-choose"
-            variant="outlined"
-            component="span" >
-             Choose Files
-          </Button>
-        </label>
-        <div className="file-name">
-        {selectedFiles && selectedFiles.length > 0 ? selectedFiles[0].name : null}
+        <div className="row my-3">
+          <div className="col-8">
+            <label className="btn btn-default p-0">
+              <input type="file" multiple onChange={this.selectFiles} />
+            </label>
+          </div>
+
+          <div className="col-4">
+            <button
+              className="btn btn-success btn-sm"
+              disabled={!selectedFiles}
+              onClick={this.uploadFiles}
+            >
+              Upload
+            </button>
+          </div>
         </div>
-        <Button
-          className="btn-upload"
-          color="primary"
-          variant="contained"
-          component="span"
-          disabled={!selectedFiles}
-          onClick={this.upload}>
-          Upload
-        </Button>
 
-        <Typography variant="subtitle2" className={`upload-message ${isError ? "error" : ""}`}>
-          {message}
-        </Typography>
+        {message.length > 0 && (
+          <div className="alert alert-secondary" role="alert">
+            <ul>
+              {message.map((item, i) => {
+                return <li key={i}>{item}</li>;
+              })}
+            </ul>
+          </div>
+        )}
 
-        <Typography variant="h6" className="list-header">
-          List of Files
-          </Typography>
-        <ul className="list-group">
-          {fileInfos &&
-            fileInfos.map((file, index) => (
-              <ListItem
-                divider
-                key={index}>
-                <a href={file.url}>{file.name}</a>
-              </ListItem>
-            ))}
-        </ul>
-      </div >
+        <div className="card">
+          <div className="card-header">List of Files</div>
+          <ul className="list-group list-group-flush">
+            {fileInfos &&
+              fileInfos.map((file, index) => (
+                <li className="list-group-item" key={index}>
+                  <a href={file.url}>{file.name}</a>
+                </li>
+              ))}
+          </ul>
+        </div>
+      </div>
     );
   }
 
