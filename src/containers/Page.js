@@ -3,6 +3,7 @@ import axios from 'axios';
 import Login from '../components/Login';
 import Home from '../components/Home';
 import {Config} from '../config';
+import Grid from '@material-ui/core/Grid';
 
 class Page extends Component {
   constructor() {
@@ -48,12 +49,12 @@ class Page extends Component {
 
   render() {
     return (
-      <div>
+      <Grid container>
         {this.state.userHome ?
           (<Home userId={this.state.userId} />) :
           (<Login errorMessage={this.state.errorMessage} logUserIn={this.logUserIn} />)
         }
-      </div>
+      </Grid>
     )
   }
 }

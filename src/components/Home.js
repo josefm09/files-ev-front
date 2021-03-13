@@ -1,21 +1,30 @@
 import React, { Component } from 'react';
 import UploadService from '../services/UploadFileService';
 import LinearProgress from '@material-ui/core/LinearProgress';
-import { Box, Typography, Button, ListItem, withStyles } from '@material-ui/core';
+import { Card, CardContent, CardActions, Typography, Button, Box, makeStyles, Grid } from '@material-ui/core';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
+import ListItemText from '@material-ui/core/ListItemText';
+import DescriptionIcon from '@material-ui/icons/Description';
+import GetAppIcon from '@material-ui/icons/GetApp';
 
-const BorderLinearProgress = withStyles((theme) => ({
+const useStyles = makeStyles((theme) => ({
   root: {
-    height: 15,
-    borderRadius: 5,
+    minWidth: 275,
   },
-  colorPrimary: {
-    backgroundColor: "#EEEEEE",
+  bullet: {
+    display: 'inline-block',
+    margin: '0 2px',
+    transform: 'scale(0.8)',
   },
-  bar: {
-    borderRadius: 5,
-    backgroundColor: '#1a90ff',
+  title: {
+    fontSize: 14,
   },
-}))(LinearProgress);
+  pos: {
+    marginBottom: 12,
+  },
+}));
 
 class Home extends Component {
 
@@ -68,13 +77,15 @@ class Home extends Component {
 
   upload(idx, file) {
     let _progressInfos = [...this.state.progressInfos];
-
+    const nombre = file.name;
     const reader = new FileReader();
     reader.onload = async (file) => { 
       const text = (file.target.result);
-      console.log(text);
-      console.log(this.props.userId);
-      UploadService.upload(text, this.props.userId, (event) => {
+      let data = {
+        fileText: text,
+        name: nombre        
+      }
+      UploadService.upload(data, this.props.userId, (event) => {
         _progressInfos[idx].percentage = Math.round((100 * event.loaded) / event.total);
         this.setState({
           _progressInfos,
@@ -82,7 +93,7 @@ class Home extends Component {
       })
         .then((response) => {
           this.setState((prev) => {
-            let nextMessage = [...prev.message, "Archivo cargado con exito: " + file.name];
+            let nextMessage = [...prev.message, "Archivo cargado con exito: " + response.data.fileText.name];
             return {
               message: nextMessage
             };
@@ -98,7 +109,7 @@ class Home extends Component {
         .catch(() => {
           _progressInfos[idx].percentage = 0;
           this.setState((prev) => {
-            let nextMessage = [...prev.message, "No se pudo cargar el archivo: " + file.name];
+            let nextMessage = [...prev.message, "No se pudo cargar el archivo"];
             return {
               progressInfos: _progressInfos,
               message: nextMessage
@@ -117,63 +128,97 @@ class Home extends Component {
     });
   }
 
-  /*showFile = async (e) => {
-    e.preventDefault()
-    const reader = new FileReader()
-    reader.onload = async (e) => { 
-      const text = (e.target.result)
-      console.log(text)
-      alert(text)
-    };
-
-    reader.readAsText(e.target.files[i])
-    const files = e.target.files;
-
-    
-  }*/
-
   render = () => {
 
     const { selectedFiles, progressInfos, message, fileInfos } = this.state;
-
+    
     return (
-      <div>
+      <Box m={5} pt={3}>
+        <Grid container justify="center" >
+          <Card className={useStyles.root}>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Analizador de comentarios
+              </Typography>
+                {progressInfos &&
+                progressInfos.map((progressInfo, index) => (
+                  <Grid item key={index}>
+                    <span>{progressInfo.fileName} {progressInfo.percentage}%</span>
+                    <LinearProgress variant="determinate" value={progressInfo.percentage} />
+                  </Grid>
+                ))}
+
+              {message.length > 0 && (
+              <List component="nav" aria-label="Listado notificaciones">
+                {message.map((item, i) => {
+                  return <ListItem key={i}>
+                          <ListItemIcon>
+                            <DescriptionIcon />
+                          </ListItemIcon>
+                          <ListItemText primary={item} />
+                        </ListItem>
+                })}
+              </List>
+              )}
+
+              
+              <Grid item>Lista de Archivos</Grid>
+              <List component="nav" aria-label="Listado archivos">
+                {fileInfos &&
+                  fileInfos.map((file, index) => (
+                    <ListItem button key={index} href={file.fileText.name}>
+                      <ListItemIcon>
+                        <GetAppIcon />
+                      </ListItemIcon>
+                      <ListItemText primary={file.fileText.name} />
+                    </ListItem>
+                  ))}
+              </List>
+              
+            </CardContent>
+            <CardActions>
+              <Button color="secondary" component="label">
+                Subir archivo
+                <input  type="file" multiple onChange={this.selectFiles} hidden />
+              </Button>
+              <Button
+                color="primary"
+                disabled={!selectedFiles}
+                onClick={this.uploadFiles}
+              >
+                Enviar comentario
+              </Button>
+            </CardActions>
+          </Card>
+        </Grid>
+      </Box>
+      
+    /*<Grid container justify="center" b={2}>
         {progressInfos &&
           progressInfos.map((progressInfo, index) => (
-            <div className="mb-2" key={index}>
-              <span>{progressInfo.fileName}</span>
-              <div className="progress">
-                <div
-                  className="progress-bar progress-bar-info"
-                  role="progressbar"
-                  aria-valuenow={progressInfo.percentage}
-                  aria-valuemin="0"
-                  aria-valuemax="100"
-                  style={{ width: progressInfo.percentage + "%" }}
-                >
-                  {progressInfo.percentage}%
-                </div>
-              </div>
-            </div>
+            <Grid b={2} item key={index}>
+              <span>{progressInfo.fileName} {progressInfo.percentage}%</span>
+              <LinearProgress variant="determinate" value={progressInfo.percentage} />
+            </Grid>
           ))}
 
-        <div className="row my-3">
-          <div className="col-8">
-            <label className="btn btn-default p-0">
-              <input type="file" multiple onChange={this.selectFiles} />
-            </label>
-          </div>
+        <Grid item y={3}>
+          <Grid item md={8}>
+            <Button type="file" multiple onChange={this.selectFiles}>
+              Seleccionar comentario
+            </Button>
+          </Grid>
 
-          <div className="col-4">
-            <button
-              className="btn btn-success btn-sm"
+          <Grid item md={4}>
+            <Button
+              color="primary"
               disabled={!selectedFiles}
               onClick={this.uploadFiles}
             >
-              Upload
-            </button>
-          </div>
-        </div>
+              Subir comentario
+            </Button>
+          </Grid>
+        </Grid>
 
         {message.length > 0 && (
           <div className="alert alert-secondary" role="alert">
@@ -191,12 +236,12 @@ class Home extends Component {
             {fileInfos &&
               fileInfos.map((file, index) => (
                 <li className="list-group-item" key={index}>
-                  <a href={file.url}>{file.name}</a>
+                  <a href={file.fileText.name}>{file.fileText.name}</a>
                 </li>
               ))}
           </ul>
         </div>
-      </div>
+      </Grid>*/
     );
   }
 
