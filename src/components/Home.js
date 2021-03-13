@@ -1,30 +1,14 @@
 import React, { Component } from 'react';
 import UploadService from '../services/UploadFileService';
 import LinearProgress from '@material-ui/core/LinearProgress';
-import { Card, CardContent, CardActions, Typography, Button, Box, makeStyles, Grid } from '@material-ui/core';
+import { Card, CardContent, CardActions, Typography, Button, Box, Grid } from '@material-ui/core';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import DescriptionIcon from '@material-ui/icons/Description';
 import GetAppIcon from '@material-ui/icons/GetApp';
-
-const useStyles = makeStyles((theme) => ({
-  root: {
-    minWidth: 275,
-  },
-  bullet: {
-    display: 'inline-block',
-    margin: '0 2px',
-    transform: 'scale(0.8)',
-  },
-  title: {
-    fontSize: 14,
-  },
-  pos: {
-    marginBottom: 12,
-  },
-}));
+import Analysis from './Analysis';
 
 class Home extends Component {
 
@@ -50,7 +34,6 @@ class Home extends Component {
       progressInfos: [],
       selectedFiles: event.target.files,
     });
-    alert(this.state.selectedFiles);
   }
 
   uploadFiles() {
@@ -131,117 +114,75 @@ class Home extends Component {
   render = () => {
 
     const { selectedFiles, progressInfos, message, fileInfos } = this.state;
+    const mystyle = {
+      
+    };
     
     return (
-      <Box m={5} pt={3}>
-        <Grid container justify="center" >
-          <Card className={useStyles.root}>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Analizador de comentarios
-              </Typography>
-                {progressInfos &&
-                progressInfos.map((progressInfo, index) => (
-                  <Grid item key={index}>
-                    <span>{progressInfo.fileName} {progressInfo.percentage}%</span>
-                    <LinearProgress variant="determinate" value={progressInfo.percentage} />
-                  </Grid>
-                ))}
-
-              {message.length > 0 && (
-              <List component="nav" aria-label="Listado notificaciones">
-                {message.map((item, i) => {
-                  return <ListItem key={i}>
-                          <ListItemIcon>
-                            <DescriptionIcon />
-                          </ListItemIcon>
-                          <ListItemText primary={item} />
-                        </ListItem>
-                })}
-              </List>
-              )}
-
-              
-              <Grid item>Lista de Archivos</Grid>
-              <List component="nav" aria-label="Listado archivos">
-                {fileInfos &&
-                  fileInfos.map((file, index) => (
-                    <ListItem button key={index} href={file.fileText.name}>
-                      <ListItemIcon>
-                        <GetAppIcon />
-                      </ListItemIcon>
-                      <ListItemText primary={file.fileText.name} />
-                    </ListItem>
+      <Box m={1} pt={1}>
+        <Grid container justify="center">
+          <Grid item md={4}>
+            <Card style={mystyle}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  Analizador de comentarios
+                </Typography>
+                  {progressInfos &&
+                  progressInfos.map((progressInfo, index) => (
+                    <Grid item key={index}>
+                      <span>{progressInfo.fileName} {progressInfo.percentage}%</span>
+                      <LinearProgress variant="determinate" value={progressInfo.percentage} />
+                    </Grid>
                   ))}
-              </List>
-              
-            </CardContent>
-            <CardActions>
-              <Button color="secondary" component="label">
-                Subir archivo
-                <input  type="file" multiple onChange={this.selectFiles} hidden />
-              </Button>
-              <Button
-                color="primary"
-                disabled={!selectedFiles}
-                onClick={this.uploadFiles}
-              >
-                Enviar comentario
-              </Button>
-            </CardActions>
-          </Card>
+
+                {message.length > 0 && (
+                <List component="nav" aria-label="Listado notificaciones">
+                  {message.map((item, i) => {
+                    return <ListItem key={i}>
+                            <ListItemIcon>
+                              <DescriptionIcon />
+                            </ListItemIcon>
+                            <ListItemText primary={item} />
+                          </ListItem>
+                  })}
+                </List>
+                )}
+
+                
+                <Grid item>Lista de Archivos</Grid>
+                <List component="nav" aria-label="Listado archivos">
+                  {fileInfos &&
+                    fileInfos.map((file, index) => (
+                      <ListItem button key={index} href={file.fileText.name}>
+                        <ListItemIcon>
+                          <GetAppIcon />
+                        </ListItemIcon>
+                        <ListItemText primary={file.fileText.name} />
+                      </ListItem>
+                    ))}
+                </List>
+                
+              </CardContent>
+              <CardActions>
+                <Button color="secondary" component="label">
+                  Subir archivo
+                  <input  type="file" multiple onChange={this.selectFiles} hidden />
+                </Button>
+                <Button
+                  color="primary"
+                  disabled={!selectedFiles}
+                  onClick={this.uploadFiles}
+                >
+                  Enviar comentario
+                </Button>
+              </CardActions>
+            </Card>
+          </Grid>
+          <Grid item md={8}>
+            <Analysis userId={this.props.userId} />
+          </Grid>
         </Grid>
       </Box>
-      
-    /*<Grid container justify="center" b={2}>
-        {progressInfos &&
-          progressInfos.map((progressInfo, index) => (
-            <Grid b={2} item key={index}>
-              <span>{progressInfo.fileName} {progressInfo.percentage}%</span>
-              <LinearProgress variant="determinate" value={progressInfo.percentage} />
-            </Grid>
-          ))}
-
-        <Grid item y={3}>
-          <Grid item md={8}>
-            <Button type="file" multiple onChange={this.selectFiles}>
-              Seleccionar comentario
-            </Button>
-          </Grid>
-
-          <Grid item md={4}>
-            <Button
-              color="primary"
-              disabled={!selectedFiles}
-              onClick={this.uploadFiles}
-            >
-              Subir comentario
-            </Button>
-          </Grid>
-        </Grid>
-
-        {message.length > 0 && (
-          <div className="alert alert-secondary" role="alert">
-            <ul>
-              {message.map((item, i) => {
-                return <li key={i}>{item}</li>;
-              })}
-            </ul>
-          </div>
-        )}
-
-        <div className="card">
-          <div className="card-header">List of Files</div>
-          <ul className="list-group list-group-flush">
-            {fileInfos &&
-              fileInfos.map((file, index) => (
-                <li className="list-group-item" key={index}>
-                  <a href={file.fileText.name}>{file.fileText.name}</a>
-                </li>
-              ))}
-          </ul>
-        </div>
-      </Grid>*/
     );
   }
 

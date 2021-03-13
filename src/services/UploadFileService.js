@@ -2,11 +2,7 @@ import axios from 'axios';
 import {Config} from '../config';
 
 class UploadFilesService {
-  upload(file,token,onUploadProgress) {
-
-    const body = {
-        fileText: file
-    };
+  upload(body,token,onUploadProgress) {
 
     return axios.post(Config.BASE_URL_DEV+'/upload', body, {
       headers: {
