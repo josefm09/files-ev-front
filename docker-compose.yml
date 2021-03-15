@@ -1,11 +1,11 @@
 version: '3.7'
 services:
-  api:
-    container_name: files_ev_api
+  front:
+    container_name: files_ev_front
     restart: always
     build: .
     ports:
-      - 8080:8080
+      - 80:80
     volumes:
       - .:/usr/src/app/
       - /usr/src/app/node_modules
