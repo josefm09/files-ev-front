@@ -4,7 +4,7 @@ import {Config} from '../config';
 class UploadFilesService {
   upload(body,token,onUploadProgress) {
 
-    return axios.post(Config.BASE_URL_DEV+'/upload', body, {
+    return axios.post(Config.BASE_URL_PROD+'/upload', body, {
       headers: {
         "authorization": "JWT " + token
       },
@@ -13,7 +13,7 @@ class UploadFilesService {
   }
 
   getFiles(token) {
-    return axios.get(Config.BASE_URL_DEV+'/files', {
+    return axios.get(Config.BASE_URL_PROD+'/files', {
       headers: {
         "authorization": "JWT " + token
       }
@@ -21,7 +21,7 @@ class UploadFilesService {
   }
 
   getAnalysis(token) {
-    return axios.get(Config.BASE_URL_DEV+'/analysis', {
+    return axios.get(Config.BASE_URL_PROD+'/analysis', {
       headers: {
         "authorization": "JWT " + token
       }
