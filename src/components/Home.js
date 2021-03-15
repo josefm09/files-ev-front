@@ -104,6 +104,16 @@ class Home extends Component {
     reader.readAsText(file);
   }
 
+  downloadTxtFile(fileParam) {
+    alert("apachurrado");
+    const element = document.createElement("a");
+    const file = new Blob([fileParam.fileText], {type: 'text/plain'});
+    element.href = URL.createObjectURL(file);
+    element.download = fileParam.name;
+    document.body.appendChild(element); // Required for this to work in FireFox
+    element.click();
+  }
+
   componentDidMount() {
     UploadService.getFiles(this.props.userId).then((response) => {
       this.setState({
@@ -123,20 +133,19 @@ class Home extends Component {
     const { selectedFiles, progressInfos, message, fileInfos } = this.state;
     
     const mystyle = {
-      width: '90%',
-      height: 'max-content', //change here
-      maxHeight: 'unset',
-      left: '5% !important',
+      width: '100%',
+      height: '600px'
     };
     return (
       <Box m={1} pt={1}>
-        <Grid container justify="center" style={mystyle}>
+        <Grid container justify="center">
           <Grid item md={4} >
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Analizador de comentarios
-                </Typography>
+            <Card style={mystyle}>
+              <Typography variant="h6" gutterBottom>
+                Analizador de comentarios
+              </Typography>
+              <CardContent style={{maxHeight: 475, overflow: 'auto'}}>
+                
                   {progressInfos &&
                   progressInfos.map((progressInfo, index) => (
                     <Grid item key={index}>
@@ -160,10 +169,10 @@ class Home extends Component {
 
                 
                 <Grid item>Lista de Archivos</Grid>
-                <List component="nav" aria-label="Listado archivos">
+                <List component="nav" aria-label="Listado archivos" >
                   {fileInfos &&
                     fileInfos.map((file, index) => (
-                      <ListItem button key={index} href={file.name}>
+                      <ListItem button key={index} onClick={() => this.downloadTxtFile(file)} >
                         <ListItemIcon>
                           <GetAppIcon />
                         </ListItemIcon>

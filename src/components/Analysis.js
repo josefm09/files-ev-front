@@ -21,11 +21,20 @@ let rows = [];
 function createData(arr) {
   rows = [];
   Array.prototype.forEach.call(arr.dataTable, element => {
+    let d = new Date(element.created),
+      dformat = [d.getMonth()+1,
+        d.getDate(),
+        d.getFullYear()].join('/')+' '+
+      [d.getHours(),
+        d.getMinutes(),
+        d.getSeconds(),
+        d.getMilliseconds()].join(':');
+
     const data = {
       sentence: element.bestSentence,
       result: element.result,
       polarity: element.polarity,
-      date: element.created
+      date: dformat
     }
     rows.push(data);
   });
@@ -58,8 +67,8 @@ function stableSort(array, comparator) {
 }
 
 const headCells = [
-  { id: 'sentence', numeric: false, disablePadding: true, label: 'Parrafo del comentario' },
-  { id: 'result', numeric: true, disablePadding: false, label: 'Resultado del análisis' },
+  { id: 'sentence', numeric: false, disablePadding: false, label: 'Parrafo del comentario' },
+  { id: 'result', numeric: false, disablePadding: false, label: 'Resultado del análisis' },
   { id: 'polarity', numeric: true, disablePadding: false, label: 'Positividad' },
   { id: 'date', numeric: true, disablePadding: false, label: 'Fecha de subida' },
 ];
@@ -102,7 +111,6 @@ function EnhancedTableHead(props) {
 EnhancedTableHead.propTypes = {
   classes: PropTypes.object.isRequired,
   onRequestSort: PropTypes.func.isRequired,
-  onSelectAllClick: PropTypes.func.isRequired,
   order: PropTypes.oneOf(['asc', 'desc']).isRequired,
   orderBy: PropTypes.string.isRequired,
   rowCount: PropTypes.number.isRequired
@@ -151,10 +159,12 @@ const useStyles = makeStyles((theme) => ({
   },
   paper: {
     width: '100%',
-    marginBottom: theme.spacing(2),
+    height: 485,
+    maxHeight: 485, 
+    overflow: 'auto'
   },
   table: {
-    minWidth: 750,
+    minWidth: '100&'
   },
   visuallyHidden: {
     border: 0,
@@ -172,25 +182,16 @@ const useStyles = makeStyles((theme) => ({
 export default function EnhancedTable(props) {
   createData(props);
   const classes = useStyles();
-  const [order, setOrder] = React.useState('asc');
+  const [order, setOrder] = React.useState('desc');
   const [orderBy, setOrderBy] = React.useState('date');
   const [selected, setSelected] = React.useState([]);
   const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
+  const [rowsPerPage] = React.useState(5);
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
     setOrderBy(property);
-  };
-
-  const handleSelectAllClick = (event) => {
-    if (event.target.checked) {
-      const newSelecteds = rows.map((n) => n.name);
-      setSelected(newSelecteds);
-      return;
-    }
-    setSelected([]);
   };
 
   const handleClick = (event, name) => {
@@ -217,19 +218,14 @@ export default function EnhancedTable(props) {
     setPage(newPage);
   };
 
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
-
   const isSelected = (name) => selected.indexOf(name) !== -1;
 
   const emptyRows = rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
 
   return (
     <div className={classes.root}>
+      <EnhancedTableToolbar />
       <Paper className={classes.paper}>
-        <EnhancedTableToolbar />
         <TableContainer>
           <Table
             className={classes.table}
@@ -241,7 +237,6 @@ export default function EnhancedTable(props) {
               classes={classes}
               order={order}
               orderBy={orderBy}
-              onSelectAllClick={handleSelectAllClick}
               onRequestSort={handleRequestSort}
               rowCount={rows.length}
             />
@@ -279,16 +274,15 @@ export default function EnhancedTable(props) {
             </TableBody>
           </Table>
         </TableContainer>
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
+      </Paper>
+      <TablePagination
+          rowsPerPageOptions={[]}
           component="div"
           count={rows.length}
-          rowsPerPage={rowsPerPage}
+          rowsPerPage={5}
           page={page}
           onChangePage={handleChangePage}
-          onChangeRowsPerPage={handleChangeRowsPerPage}
         />
-      </Paper>
     </div>
   );
 }
