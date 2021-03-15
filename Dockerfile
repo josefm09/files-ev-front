@@ -10,4 +10,4 @@ RUN npm install && npm cache clean --force
 # Default user with lower privileges
 USER node
 
-CMD ["node", "start"]
+CMD ["npm", "start"]
