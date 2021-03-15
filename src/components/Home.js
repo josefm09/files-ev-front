@@ -53,10 +53,21 @@ class Home extends Component {
       },
       () => {
         for (let i = 0; i < selectedFiles.length; i++) {
-          this.upload(i, selectedFiles[i]);
+          if(selectedFiles[i].size > 0){
+            this.upload(i, selectedFiles[i]);
+          }else{
+            alert("Favor de seleccionar un archivo que contenga texto (TXT)");
+          }
         }
       }
     );
+
+    UploadService.getAnalysis(this.props.userId).then((response) => {
+      this.setState({
+        dataTable: response.data
+      });
+    });
+
   }
 
   upload(idx, file) {
@@ -87,7 +98,7 @@ class Home extends Component {
         })
         .then((files) => {
           this.setState({
-            fileInfos: files.data,
+            fileInfos: files.data
           });
         })
         .catch(() => {
@@ -105,7 +116,6 @@ class Home extends Component {
   }
 
   downloadTxtFile(fileParam) {
-    alert("apachurrado");
     const element = document.createElement("a");
     const file = new Blob([fileParam.fileText], {type: 'text/plain'});
     element.href = URL.createObjectURL(file);
@@ -185,7 +195,7 @@ class Home extends Component {
               <CardActions>
                 <Button color="secondary" component="label">
                   Subir archivo
-                  <input  type="file" multiple onChange={this.selectFiles} hidden />
+                  <input  type="file" multiple accept=".txt,.log" onChange={this.selectFiles} hidden />
                 </Button>
                 <Button
                   color="primary"
