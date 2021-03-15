@@ -23,6 +23,7 @@ class Home extends Component {
       message: [],
       isError: false,
       fileInfos: [],
+      dataTable: []
     };
 
     this.selectFiles = this.selectFiles.bind(this);
@@ -76,7 +77,7 @@ class Home extends Component {
       })
         .then((response) => {
           this.setState((prev) => {
-            let nextMessage = [...prev.message, "Archivo cargado con exito: " + response.data.fileText.name];
+            let nextMessage = [...prev.message, "Archivo cargado con exito: " + response.data.name];
             return {
               message: nextMessage
             };
@@ -109,20 +110,29 @@ class Home extends Component {
         fileInfos: response.data,
       });
     });
+
+    UploadService.getAnalysis(this.props.userId).then((response) => {
+      this.setState({
+        dataTable: response.data,
+      });
+    });
   }
 
   render = () => {
 
     const { selectedFiles, progressInfos, message, fileInfos } = this.state;
-    const mystyle = {
-      
-    };
     
+    const mystyle = {
+      width: '90%',
+      height: 'max-content', //change here
+      maxHeight: 'unset',
+      left: '5% !important',
+    };
     return (
       <Box m={1} pt={1}>
-        <Grid container justify="center">
-          <Grid item md={4}>
-            <Card style={mystyle}>
+        <Grid container justify="center" style={mystyle}>
+          <Grid item md={4} >
+            <Card>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
                   Analizador de comentarios
@@ -153,11 +163,11 @@ class Home extends Component {
                 <List component="nav" aria-label="Listado archivos">
                   {fileInfos &&
                     fileInfos.map((file, index) => (
-                      <ListItem button key={index} href={file.fileText.name}>
+                      <ListItem button key={index} href={file.name}>
                         <ListItemIcon>
                           <GetAppIcon />
                         </ListItemIcon>
-                        <ListItemText primary={file.fileText.name} />
+                        <ListItemText primary={file.name} />
                       </ListItem>
                     ))}
                 </List>
@@ -179,7 +189,7 @@ class Home extends Component {
             </Card>
           </Grid>
           <Grid item md={8}>
-            <Analysis userId={this.props.userId} />
+            <Analysis dataTable={this.state.dataTable} />
           </Grid>
         </Grid>
       </Box>

@@ -19,6 +19,14 @@ class UploadFilesService {
       }
     });
   }
+
+  getAnalysis(token) {
+    return axios.get(Config.BASE_URL_DEV+'/analysis', {
+      headers: {
+        "authorization": "JWT " + token
+      }
+    });
+  }
 }
 
 export default new UploadFilesService();
